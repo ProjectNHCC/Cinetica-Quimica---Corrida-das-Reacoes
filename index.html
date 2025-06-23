@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cinética Química - Corrida das Reações</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#5D5CDE',
+                        secondary: '#FF6B6B',
+                        accent: '#4ECDC4',
+                        warning: '#FFE66D'
+                    },
+                    fontFamily: {
+                        'inter': ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+        
+        // Dark mode detection
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+        }
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+            if (event.matches) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        });
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .glass-effect { backdrop-filter: blur(10px); background: rgba(255, 255, 255, 0.1); }
+        .dark .glass-effect { background: rgba(0, 0, 0, 0.2); }
+        
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 5px rgba(93, 92, 222, 0.5); }
+            50% { box-shadow: 0 0 20px rgba(93, 92, 222, 0.8); }
+        }
+        
+        .pulse-glow { animation: pulse-glow 2s infinite; }
+        
+        @keyframes car-move {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(calc(100vw - 60px)); }
+        }
+        
+        .racing-car {
+            animation: car-move linear;
+            position: absolute;
+            width: 50px;
+            height: 30px;
+            z-index: 10;
+        }
+        
+        .track {
+            background: repeating-linear-gradient(
+                90deg,
+                #4A5568 0px,
+                #4A5568 20px,
+                #2D3748 20px,
+                #2D3748 40px
+            );
+            border-top: 3px solid #FFE66D;
+            border-bottom: 3px solid #FFE66D;
+        }
+    </style>
+</head>
+<body class="bg-white dark:bg-gray-900 text-gray-900 dark:text-white font-inter">
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur-md z-50 border-b border-gray-200 dark:border-gray-700">
+        <div class="container mx-auto px-4 py-3">
+            <div class="flex items-center justify-between">
+                <div class="text-2xl font-bold text-primary">
+                    🧪 Cinética Química
+                </div>
+                <div class="hidden md:flex space-x-6">
+                    <a href="#intro" class="hover:text-primary transition-colors">Introdução</a>
+                    <a href="#fatores" class="hover:text-primary transition-colors">Fatores</a>
+                    <a href="#jogo" class="hover:text-primary transition-colors">Jogo</a>
+                    <a href="#exercicios" class="hover:text-primary transition-colors">Exercícios</a>
+                    <a href="#aplicacoes" class="hover:text-primary transition-colors">Aplicações</a>
+                </div>
+                <button id="mobile-menu-btn" class="md:hidden">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="intro" class="pt-20 min-h-screen gradient-bg flex items-center">
+        <div class="container mx-auto px-4 text-center text-white">
+            <h1 class="text-5xl md:text-7xl font-bold mb-6">
+                Cinética <span class="text-warning">Química</span>
+            </h1>
+            <p class="text-xl md:text-2xl mb-8 max-w-4xl mx-auto">
+                Descubra os segredos da velocidade das reações químicas através de um jogo interativo e emocionante!
+            </p>
+            <div class="grid md:grid-cols-3 gap-8 mt-12">
+                <div class="glass-effect p-6 rounded-lg">
+                    <div class="text-4xl mb-4">⚡</div>
+                    <h3 class="text-xl font-semibold mb-2">Aprenda Brincando</h3>
+                    <p>Jogo de corrida interativo que torna o aprendizado divertido e memorável</p>
+                </div>
+                <div class="glass-effect p-6 rounded-lg">
+                    <div class="text-4xl mb-4">📊</div>
+                    <h3 class="text-xl font-semibold mb-2">Análise Visual</h3>
+                    <p>Gráficos e dados em tempo real para entender os resultados</p>
+                </div>
+                <div class="glass-effect p-6 rounded-lg">
+                    <div class="text-4xl mb-4">🏆</div>
+                    <h3 class="text-xl font-semibold mb-2">Desafios</h3>
+                    <p>Exercícios práticos para fixar o conhecimento adquirido</p>
+                </div>
+            </div>
+            <button onclick="document.getElementById('fatores').scrollIntoView({behavior: 'smooth'})" 
+                    class="mt-12 bg-primary hover:bg-purple-700 text-white px-8 py-4 rounded-lg text-lg font-semibold pulse-glow transition-all">
+                Começar a Explorar
+            </button>
+        </div>
+    </section>
+
+    <!-- Fatores Section -->
+    <section id="fatores" class="py-20 bg-gray-50 dark:bg-gray-800">
+        <div class="container mx-auto px-4">
+            <h2 class="text-4xl font-bold text-center mb-16">Fatores que Influenciam a Velocidade das Reações</h2>
+            
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <!-- Temperatura -->
+                <div class="bg-white dark:bg-gray-700 p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow">
+                    <div class="text-6xl text-center mb-4">🌡️</div>
+                    <h3 class="text-xl font-semibold mb-4 text-center">Temperatura</h3>
+                    <p class="text-gray-600 dark:text-gray-300 mb-4">
+                        Maior temperatura aumenta a energia cinética das moléculas, fazendo-as colidir com mais frequência e energia.
+                    </p>
+                    <div class="bg-gradient-to-r from-blue-400 to-red-400 h-4 rounded-full">
+                        <div class="bg-red-500 h-full w-3/4 rounded-full"></div>
+                    </div>
+                    <p class="text-sm text-center mt-2">Alta temperatura = Reação mais rápida</p>
+                </div>
+
+                <!-- Concentração -->
+                <div class="bg-white dark:bg-gray-700 p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow">
+                    <div class="text-6xl text-center mb-4">⚗️</div>
+                    <h3 class="text-xl font-semibold mb-4 text-center">Concentração</h3>
+                    <p class="text-gray-600 dark:text-gray-300 mb-4">
+                        Maior concentração significa mais moléculas reagentes por volume, aumentando a probabilidade de colisões.
+                    </p>
+                    <div class="flex space-x-2 justify-center">
+                        <div class="w-4 h-8 bg-blue-300 rounded"></div>
+                        <div class="w-4 h-8 bg-blue-500 rounded"></div>
+                        <div class="w-4 h-8 bg-blue-700 rounded"></div>
+                    </div>
+                    <p class="text-sm text-center mt-2">Mais concentrado = Mais rápido</p>
+                </div>
+
+                <!-- Catalisador -->
+                <div class="bg-white dark:bg-gray-700 p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow">
+                    <div class="text-6xl text-center mb-4">🔬</div>
+                    <h3 class="text-xl font-semibold mb-4 text-center">Catalisador</h3>
+                    <p class="text-gray-600 dark:text-gray-300 mb-4">
+                        Substâncias que diminuem a energia de ativação, criando um caminho alternativo mais fácil para a reação.
+                    </p>
+                    <div class="relative">
+                        <div class="w-full h-8 bg-gray-300 rounded relative">
+                            <div class="absolute top-0 left-0 w-1/2 h-full bg-green-500 rounded"></div>
+                            <div class="absolute top-2 right-4 text-xs">Com catalisador</div>
+                        </div>
+                    </div>
+                    <p class="text-sm text-center mt-2">Catalisa = Acelera reação</p>
+                </div>
+
+                <!-- Superfície de Contato -->
+                <div class="bg-white dark:bg-gray-700 p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow">
+                    <div class="text-6xl text-center mb-4">🧊</div>
+                    <h3 class="text-xl font-semibold mb-4 text-center">Superfície de Contato</h3>
+                    <p class="text-gray-600 dark:text-gray-300 mb-4">
+                        Maior área de superfície exposta permite mais pontos de contato entre reagentes sólidos.
+                    </p>
+                    <div class="flex justify-center space-x-4">
+                        <div class="w-8 h-8 bg-gray-400 rounded"></div>
+                        <div class="grid grid-cols-2 gap-1">
+                            <div class="w-3 h-3 bg-gray-400"></div>
+                            <div class="w-3 h-3 bg-gray-400"></div>
+                            <div class="w-3 h-3 bg-gray-400"></div>
+                            <div class="w-3 h-3 bg-gray-400"></div>
+                        </div>
+                    </div>
+                    <p class="text-sm text-center mt-2">Fragmentado = Mais rápido</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Jogo Section -->
+    <section id="jogo" class="py-20 bg-white dark:bg-gray-900">
+        <div class="container mx-auto px-4">
+            <h2 class="text-4xl font-bold text-center mb-16">🏎️ Corrida das Reações</h2>
+            
+            <!-- Game Setup -->
+            <div id="game-setup" class="max-w-4xl mx-auto">
+                <div class="bg-gray-50 dark:bg-gray-800 p-8 rounded-lg shadow-lg">
+                    <h3 class="text-2xl font-semibold mb-6 text-center">Configure sua Reação</h3>
+                    <p class="text-center mb-8 text-gray-600 dark:text-gray-300">
+                        Ajuste os parâmetros abaixo para ver como eles afetam a velocidade da sua reação química!
+                    </p>
+                    
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <!-- Temperatura -->
+                        <div class="space-y-4">
+                            <label class="block text-lg font-medium">🌡️ Temperatura</label>
+                            <div class="space-y-2">
+                                <input type="range" id="temperatura" min="1" max="3" value="2" class="w-full">
+                                <div class="flex justify-between text-sm text-gray-600 dark:text-gray-400">
+                                    <span>Baixa (20°C)</span>
+                                    <span>Média (50°C)</span>
+                                    <span>Alta (80°C)</span>
+                                </div>
+                            </div>
+                            <div id="temp-display" class="text-center font-semibold text-primary"></div>
+                        </div>
+
+                        <!-- Concentração -->
+                        <div class="space-y-4">
+                            <label class="block text-lg font-medium">⚗️ Concentração</label>
+                            <div class="space-y-2">
+                                <input type="range" id="concentracao" min="1" max="3" value="2" class="w-full">
+                                <div class="flex justify-between text-sm text-gray-600 dark:text-gray-400">
+                                    <span>Diluída</span>
+                                    <span>Normal</span>
+                                    <span>Concentrada</span>
+                                </div>
+                            </div>
+                            <div id="conc-display" class="text-center font-semibold text-primary"></div>
+                        </div>
+
+                        <!-- Catalisador -->
+                        <div class="space-y-4">
+                            <label class="block text-lg font-medium">🔬 Catalisador</label>
+                            <div class="flex space-x-4 justify-center">
+                                <label class="flex items-center space-x-2">
+                                    <input type="radio" name="catalisador" value="false" checked class="text-primary">
+                                    <span>Sem Catalisador</span>
+                                </label>
+                                <label class="flex items-center space-x-2">
+                                    <input type="radio" name="catalisador" value="true" class="text-primary">
+                                    <span>Com Catalisador</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Superfície -->
+                        <div class="space-y-4">
+                            <label class="block text-lg font-medium">🧊 Superfície de Contato</label>
+                            <div class="space-y-2">
+                                <input type="range" id="superficie" min="1" max="3" value="2" class="w-full">
+                                <div class="flex justify-between text-sm text-gray-600 dark:text-gray-400">
+                                    <span>Pequena</span>
+                                    <span>Média</span>
+                                    <span>Grande</span>
+                                </div>
+                            </div>
+                            <div id="sup-display" class="text-center font-semibold text-primary"></div>
+                        </div>
+                    </div>
+
+                    <button id="start-race" class="w-full mt-8 bg-primary hover:bg-purple-700 text-white px-8 py-4 rounded-lg text-xl font-semibold transition-all">
+                        🏁 Iniciar Corrida!
+                    </button>
+                </div>
+            </div>
+
+            <!-- Race Track -->
+            <div id="race-track" class="hidden mt-12">
+                <div class="max-w-6xl mx-auto">
+                    <h3 class="text-2xl font-semibold mb-6 text-center">Pista de Corrida</h3>
+                    
+                    <!-- Track -->
+                    <div class="relative track h-32 rounded-lg overflow-hidden mb-6">
+                        <!-- Start Line -->
+                        <div class="absolute left-0 top-0 w-2 h-full bg-green-500 z-20"></div>
+                        <!-- Finish Line -->
+                        <div class="absolute right-0 top-0 w-2 h-full bg-red-500 z-20"></div>
+                        
+                        <!-- Cars -->
+                        <div id="car1" class="racing-car bg-red-500 rounded-lg flex items-center justify-center text-white font-bold top-2">🚗</div>
+                        <div id="car2" class="racing-car bg-blue-500 rounded-lg flex items-center justify-center text-white font-bold top-12">🚙</div>
+                        <div id="car3" class="racing-car bg-green-500 rounded-lg flex items-center justify-center text-white font-bold top-22">🚐</div>
+                    </div>
+
+                    <!-- Race Info -->
+                    <div class="grid grid-cols-3 gap-4 mb-6">
+                        <div class="bg-red-100 dark:bg-red-900 p-4 rounded-lg text-center">
+                            <div class="text-2xl mb-2">🚗</div>
+                            <div class="font-semibold">Sua Configuração</div>
+                            <div id="user-config" class="text-sm mt-2"></div>
+                        </div>
+                        <div class="bg-blue-100 dark:bg-blue-900 p-4 rounded-lg text-center">
+                            <div class="text-2xl mb-2">🚙</div>
+                            <div class="font-semibold">Configuração Média</div>
+                            <div class="text-sm mt-2">Temp: Média, Conc: Normal<br>Sem Catalisador, Sup: Média</div>
+                        </div>
+                        <div class="bg-green-100 dark:bg-green-900 p-4 rounded-lg text-center">
+                            <div class="text-2xl mb-2">🚐</div>
+                            <div class="font-semibold">Configuração Ótima</div>
+                            <div class="text-sm mt-2">Temp: Alta, Conc: Concentrada<br>Com Catalisador, Sup: Grande</div>
+                        </div>
+                    </div>
+
+                    <div id="race-results" class="hidden">
+                        <div class="bg-warning/20 border border-warning rounded-lg p-6 mb-6">
+                            <h4 class="text-xl font-semibold mb-4">🏆 Resultado da Corrida</h4>
+                            <div id="winner-announcement" class="text-lg mb-4"></div>
+                            <div id="explanation" class="text-gray-700 dark:text-gray-300"></div>
+                        </div>
+
+                        <button id="new-race" class="bg-primary hover:bg-purple-700 text-white px-6 py-3 rounded-lg mr-4">
+                            Nova Corrida
+                        </button>
+                        <button id="view-analysis" class="bg-accent hover:bg-teal-600 text-white px-6 py-3 rounded-lg">
+                            Ver Análise Detalhada
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analysis Section -->
+            <div id="analysis-section" class="hidden mt-12 max-w-6xl mx-auto">
+                <h3 class="text-2xl font-semibold mb-6 text-center">📊 Análise de Dados</h3>
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div class="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg">
+                        <h4 class="text-lg font-semibold mb-4">Velocidade vs Tempo</h4>
+                        <canvas id="speedChart" width="400" height="300"></canvas>
+                    </div>
+                    <div class="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg">
+                        <h4 class="text-lg font-semibold mb-4">Comparação de Fatores</h4>
+                        <canvas id="factorChart" width="400" height="300"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Exercicios Section -->
+    <section id="exercicios" class="py-20 bg-gray-50 dark:bg-gray-800">
+        <div class="container mx-auto px-4">
+            <h2 class="text-4xl font-bold text-center mb-16">Exercícios e Fixação</h2>
+            
+            <div class="max-w-4xl mx-auto space-y-8">
+                <!-- Questão 1 -->
+                <div class="bg-white dark:bg-gray-700 p-6 rounded-lg shadow-lg">
+                    <h3 class="text-xl font-semibold mb-4">Questão 1</h3>
+                    <p class="mb-4">O que acontece com a velocidade de uma reação quando aumentamos a temperatura?</p>
+                    <div class="space-y-2">
+                        <label class="flex items-center space-x-2">
+                            <input type="radio" name="q1" value="a" class="text-primary">
+                            <span>A) Diminui, pois as moléculas se movem mais devagar</span>
+                        </label>
+                        <label class="flex items-center space-x-2">
+                            <input type="radio" name="q1" value="b" class="text-primary">
+                            <span>B) Aumenta, pois as moléculas colidem com mais energia e frequência</span>
+                        </label>
+                        <label class="flex items-center space-x-2">
+                            <input type="radio" name="q1" value="c" class="text-primary">
+                            <span>C) Não muda</span>
+                        </label>
+                    </div>
+                    <div id="answer1" class="hidden mt-4 p-4 bg-green-100 dark:bg-green-900 rounded-lg">
+                        <p class="font-semibold text-green-800 dark:text-green-200">✅ Correto! Resposta B</p>
+                        <p class="text-green-700 dark:text-green-300">O aumento da temperatura aumenta a energia cinética das moléculas, fazendo com que elas se movam mais rapidamente e colidam com mais energia e frequência, acelerando a reação.</p>
+                    </div>
+                </div>
+
+                <!-- Questão 2 -->
+                <div class="bg-white dark:bg-gray-700 p-6 rounded-lg shadow-lg">
+                    <h3 class="text-xl font-semibold mb-4">Questão 2</h3>
+                    <p class="mb-4">Um catalisador:</p>
+                    <div class="space-y-2">
+                        <label class="flex items-center space-x-2">
+                            <input type="radio" name="q2" value="a" class="text-primary">
+                            <span>A) É consumido durante a reação</span>
+                        </label>
+                        <label class="flex items-center space-x-2">
+                            <input type="radio" name="q2" value="b" class="text-primary">
+                            <span>B) Diminui a energia de ativação da reação</span>
+                        </label>
+                        <label class="flex items-center space-x-2">
+                            <input type="radio" name="q2" value="c" class="text-primary">
+                            <span>C) Muda os produtos da reação</span>
+                        </label>
+                    </div>
+                    <div id="answer2" class="hidden mt-4 p-4 bg-green-100 dark:bg-green-900 rounded-lg">
+                        <p class="font-semibold text-green-800 dark:text-green-200">✅ Correto! Resposta B</p>
+                        <p class="text-green-700 dark:text-green-300">O catalisador fornece um caminho alternativo para a reação com menor energia de ativação, acelerando a reação sem ser consumido no processo.</p>
+                    </div>
+                </div>
+
+                <!-- Questão 3 -->
+                <div class="bg-white dark:bg-gray-700 p-6 rounded-lg shadow-lg">
+                    <h3 class="text-xl font-semibold mb-4">Questão 3</h3>
+                    <p class="mb-4">Qual das situações abaixo resultaria na reação MAIS RÁPIDA?</p>
+                    <div class="space-y-2">
+                        <label class="flex items-center space-x-2">
+                            <input type="radio" name="q3" value="a" class="text-primary">
+                            <span>A) Baixa temperatura, sem catalisador</span>
+                        </label>
+                        <label class="flex items-center space-x-2">
+                            <input type="radio" name="q3" value="b" class="text-primary">
+                            <span>B) Alta temperatura, com catalisador, alta concentração</span>
+                        </label>
+                        <label class="flex items-center space-x-2">
+                            <input type="radio" name="q3" value="c" class="text-primary">
+                            <span>C) Temperatura média, baixa concentração</span>
+                        </label>
+                    </div>
+                    <div id="answer3" class="hidden mt-4 p-4 bg-green-100 dark:bg-green-900 rounded-lg">
+                        <p class="font-semibold text-green-800 dark:text-green-200">✅ Correto! Resposta B</p>
+                        <p class="text-green-700 dark:text-green-300">A combinação de alta temperatura, catalisador e alta concentração maximiza todos os fatores que aumentam a velocidade da reação.</p>
+                    </div>
+                </div>
+
+                <button id="check-answers" class="w-full bg-primary hover:bg-purple-700 text-white px-8 py-4 rounded-lg text-lg font-semibold transition-all">
+                    Verificar Respostas
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Aplicações Section -->
+    <section id="aplicacoes" class="py-20 bg-white dark:bg-gray-900">
+        <div class="container mx-auto px-4">
+            <h2 class="text-4xl font-bold text-center mb-16">Aplicações Reais</h2>
+            
+            <div class="grid md:grid-cols-3 gap-8">
+                <!-- Indústria Farmacêutica -->
+                <div class="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900 dark:to-blue-800 p-6 rounded-lg">
+                    <div class="text-4xl mb-4">💊</div>
+                    <h3 class="text-xl font-semibold mb-4">Indústria Farmacêutica</h3>
+                    <p class="text-gray-700 dark:text-gray-300 mb-4">
+                        Controle da velocidade de reações para produzir medicamentos com maior eficiência e pureza.
+                    </p>
+                    <ul class="text-sm space-y-1">
+                        <li>• Uso de catalisadores específicos</li>
+                        <li>• Controle rigoroso de temperatura</li>
+                        <li>• Otimização de concentrações</li>
+                    </ul>
+                </div>
+
+                <!-- Indústria Alimentícia -->
+                <div class="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900 dark:to-green-800 p-6 rounded-lg">
+                    <div class="text-4xl mb-4">🍞</div>
+                    <h3 class="text-xl font-semibold mb-4">Indústria Alimentícia</h3>
+                    <p class="text-gray-700 dark:text-gray-300 mb-4">
+                        Fermentação, conservação e processamento de alimentos dependem do controle da cinética química.
+                    </p>
+                    <ul class="text-sm space-y-1">
+                        <li>• Fermentação do pão</li>
+                        <li>• Produção de bebidas</li>
+                        <li>• Conservação de alimentos</li>
+                    </ul>
+                </div>
+
+                <!-- Controle Ambiental -->
+                <div class="bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-900 dark:to-yellow-800 p-6 rounded-lg">
+                    <div class="text-4xl mb-4">🌱</div>
+                    <h3 class="text-xl font-semibold mb-4">Controle Ambiental</h3>
+                    <p class="text-gray-700 dark:text-gray-300 mb-4">
+                        Tratamento de poluentes e resíduos usando catalisadores para acelerar reações de decomposição.
+                    </p>
+                    <ul class="text-sm space-y-1">
+                        <li>• Conversores catalíticos</li>
+                        <li>• Tratamento de água</li>
+                        <li>• Decomposição de poluentes</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Exemplos Específicos -->
+            <div class="mt-16 grid md:grid-cols-2 gap-8">
+                <div class="bg-red-50 dark:bg-red-900 p-6 rounded-lg">
+                    <h3 class="text-xl font-semibold mb-4 text-red-800 dark:text-red-200">⚡ Reações Rápidas</h3>
+                    <ul class="space-y-2 text-gray-700 dark:text-gray-300">
+                        <li><strong>Explosões:</strong> Combustão muito rápida com liberação intensa de energia</li>
+                        <li><strong>Neutralização ácido-base:</strong> Reação quase instantânea</li>
+                        <li><strong>Precipitação:</strong> Formação rápida de compostos insolúveis</li>
+                    </ul>
+                </div>
+
+                <div class="bg-orange-50 dark:bg-orange-900 p-6 rounded-lg">
+                    <h3 class="text-xl font-semibold mb-4 text-orange-800 dark:text-orange-200">🐌 Reações Lentas</h3>
+                    <ul class="space-y-2 text-gray-700 dark:text-gray-300">
+                        <li><strong>Ferrugem:</strong> Oxidação lenta do ferro em contato com oxigênio</li>
+                        <li><strong>Digestão:</strong> Quebra gradual de alimentos por enzimas</li>
+                        <li><strong>Formação de fósseis:</strong> Processos geológicos de milhões de anos</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-12 bg-gray-900 text-white">
+        <div class="container mx-auto px-4">
+            <div class="grid md:grid-cols-4 gap-8">
+                <div>
+                    <h4 class="text-xl font-bold mb-4">🧪 Cinética Química</h4>
+                    <p class="text-gray-400">
+                        Uma plataforma educacional interativa para aprender cinética química de forma divertida e eficaz.
+                    </p>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">Recursos</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#intro" class="hover:text-white">Introdução</a></li>
+                        <li><a href="#fatores" class="hover:text-white">Fatores</a></li>
+                        <li><a href="#jogo" class="hover:text-white">Jogo Interativo</a></li>
+                        <li><a href="#exercicios" class="hover:text-white">Exercícios</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">Materiais Complementares</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" class="hover:text-white">Vídeos Educativos</a></li>
+                        <li><a href="#" class="hover:text-white">Artigos Científicos</a></li>
+                        <li><a href="#" class="hover:text-white">Bibliografia</a></li>
+                        <li><a href="#" class="hover:text-white">Glossário</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">Contato</h4>
+                    <div class="space-y-2 text-gray-400">
+                        <p>📧 contato@cineticaquimica.edu</p>
+                        <p>📱 (11) 99999-9999</p>
+                        <div class="mt-4">
+                            <button class="bg-primary hover:bg-purple-700 text-white px-4 py-2 rounded">
+                                Enviar Sugestão
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
+                <p>&copy; 2024 Cinética Química. Desenvolvido para fins educacionais.</p>
+                <p class="mt-2">🎓 Ensino Médio • Professores de Química • Estudantes</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Game variables
+        let gameConfig = {
+            temperatura: 2,
+            concentracao: 2,
+            catalisador: false,
+            superficie: 2
+        };
+
+        let raceData = {
+            user: { time: 0, speed: 0 },
+            average: { time: 0, speed: 0 },
+            optimal: { time: 0, speed: 0 }
+        };
+
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeGameControls();
+            initializeExercises();
+            initializeMobileMenu();
+        });
+
+        function initializeMobileMenu() {
+            const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+            mobileMenuBtn.addEventListener('click', function() {
+                // Simple mobile menu implementation
+                alert('Menu mobile - navegue pelas seções usando os links do menu');
+            });
+        }
+
+        function initializeGameControls() {
+            // Temperature slider
+            const tempSlider = document.getElementById('temperatura');
+            const tempDisplay = document.getElementById('temp-display');
+            
+            tempSlider.addEventListener('input', function() {
+                gameConfig.temperatura = parseInt(this.value);
+                updateDisplay(tempDisplay, ['Baixa (20°C)', 'Média (50°C)', 'Alta (80°C)'][gameConfig.temperatura - 1]);
+            });
+
+            // Concentration slider
+            const concSlider = document.getElementById('concentracao');
+            const concDisplay = document.getElementById('conc-display');
+            
+            concSlider.addEventListener('input', function() {
+                gameConfig.concentracao = parseInt(this.value);
+                updateDisplay(concDisplay, ['Diluída', 'Normal', 'Concentrada'][gameConfig.concentracao - 1]);
+            });
+
+            // Surface slider
+            const supSlider = document.getElementById('superficie');
+            const supDisplay = document.getElementById('sup-display');
+            
+            supSlider.addEventListener('input', function() {
+                gameConfig.superficie = parseInt(this.value);
+                updateDisplay(supDisplay, ['Pequena', 'Média', 'Grande'][gameConfig.superficie - 1]);
+            });
+
+            // Catalyst radio buttons
+            document.querySelectorAll('input[name="catalisador"]').forEach(radio => {
+                radio.addEventListener('change', function() {
+                    gameConfig.catalisador = this.value === 'true';
+                });
+            });
+
+            // Start race button
+            document.getElementById('start-race').addEventListener('click', startRace);
+            
+            // New race button
+            document.getElementById('new-race').addEventListener('click', resetGame);
+            
+            // View analysis button
+            document.getElementById('view-analysis').addEventListener('click', showAnalysis);
+
+            // Initialize displays
+            updateDisplay(tempDisplay, 'Média (50°C)');
+            updateDisplay(concDisplay, 'Normal');
+            updateDisplay(supDisplay, 'Média');
+        }
+
+        function updateDisplay(element, text) {
+            element.textContent = text;
+        }
+
+        function calculateReactionSpeed(temp, conc, cat, surf) {
+            let baseSpeed = 1;
+            let speedMultiplier = 1;
+
+            // Temperature effect (exponential)
+            speedMultiplier *= temp * 0.8;
+
+            // Concentration effect (linear)
+            speedMultiplier *= conc * 0.7;
+
+            // Catalyst effect (significant boost)
+            if (cat) speedMultiplier *= 2.5;
+
+            // Surface area effect
+            speedMultiplier *= surf * 0.6;
+
+            return baseSpeed * speedMultiplier;
+        }
+
+        function startRace() {
+            // Hide setup, show track
+            document.getElementById('game-setup').style.display = 'none';
+            document.getElementById('race-track').style.display = 'block';
+
+            // Calculate speeds
+            const userSpeed = calculateReactionSpeed(
+                gameConfig.temperatura,
+                gameConfig.concentracao,
+                gameConfig.catalisador,
+                gameConfig.superficie
+            );
+            
+            const averageSpeed = calculateReactionSpeed(2, 2, false, 2); // Average config
+            const optimalSpeed = calculateReactionSpeed(3, 3, true, 3); // Optimal config
+
+            // Calculate race times (inverse of speed)
+            raceData.user = { speed: userSpeed, time: 10 / userSpeed };
+            raceData.average = { speed: averageSpeed, time: 10 / averageSpeed };
+            raceData.optimal = { speed: optimalSpeed, time: 10 / optimalSpeed };
+
+            // Update user config display
+            updateUserConfigDisplay();
+
+            // Animate cars
+            animateCars();
+        }
+
+        function updateUserConfigDisplay() {
+            const configDiv = document.getElementById('user-config');
+            const tempText = ['Baixa', 'Média', 'Alta'][gameConfig.temperatura - 1];
+            const concText = ['Diluída', 'Normal', 'Concentrada'][gameConfig.concentracao - 1];
+            const catText = gameConfig.catalisador ? 'Com' : 'Sem';
+            const supText = ['Pequena', 'Média', 'Grande'][gameConfig.superficie - 1];
+            
+            configDiv.innerHTML = `
+                Temp: ${tempText}, Conc: ${concText}<br>
+                ${catText} Catalisador, Sup: ${supText}
+            `;
+        }
+
+        function animateCars() {
+            const car1 = document.getElementById('car1');
+            const car2 = document.getElementById('car2');
+            const car3 = document.getElementById('car3');
+
+            // Set animation durations based on calculated times
+            car1.style.animationDuration = `${raceData.user.time}s`;
+            car2.style.animationDuration = `${raceData.average.time}s`;
+            car3.style.animationDuration = `${raceData.optimal.time}s`;
+
+            // Start animations
+            car1.style.animation = `car-move ${raceData.user.time}s linear forwards`;
+            car2.style.animation = `car-move ${raceData.average.time}s linear forwards`;
+            car3.style.animation = `car-move ${raceData.optimal.time}s linear forwards`;
+
+            // Show results after the fastest car finishes
+            const fastestTime = Math.min(raceData.user.time, raceData.average.time, raceData.optimal.time);
+            setTimeout(showRaceResults, fastestTime * 1000 + 500);
+        }
+
+        function showRaceResults() {
+            const resultsDiv = document.getElementById('race-results');
+            const winnerDiv = document.getElementById('winner-announcement');
+            const explanationDiv = document.getElementById('explanation');
+
+            // Determine winner
+            let winner, winnerConfig, explanation;
+            
+            if (raceData.user.time <= raceData.average.time && raceData.user.time <= raceData.optimal.time) {
+                winner = "Sua Configuração";
+                explanation = "Excelente! Sua configuração resultou na reação mais rápida.";
+            } else if (raceData.optimal.time <= raceData.average.time) {
+                winner = "Configuração Ótima";
+                explanation = "A configuração ótima venceu porque combina todos os fatores que aceleram a reação.";
+            } else {
+                winner = "Configuração Média";
+                explanation = "A configuração média teve um desempenho equilibrado.";
+            }
+
+            winnerDiv.innerHTML = `🏆 Vencedor: <strong>${winner}</strong>`;
+            
+            // Detailed explanation
+            let detailedExplanation = explanation + "<br><br>";
+            
+            if (gameConfig.temperatura === 3) {
+                detailedExplanation += "✅ Alta temperatura: Aumentou significativamente a velocidade da reação.<br>";
+            } else if (gameConfig.temperatura === 1) {
+                detailedExplanation += "❌ Baixa temperatura: Diminuiu a velocidade da reação.<br>";
+            }
+            
+            if (gameConfig.concentracao === 3) {
+                detailedExplanation += "✅ Alta concentração: Mais moléculas reagentes disponíveis.<br>";
+            } else if (gameConfig.concentracao === 1) {
+                detailedExplanation += "❌ Baixa concentração: Poucas moléculas reagentes disponíveis.<br>";
+            }
+            
+            if (gameConfig.catalisador) {
+                detailedExplanation += "✅ Catalisador: Criou um caminho de menor energia para a reação.<br>";
+            } else {
+                detailedExplanation += "❌ Sem catalisador: Reação seguiu o caminho de maior energia.<br>";
+            }
+            
+            if (gameConfig.superficie === 3) {
+                detailedExplanation += "✅ Grande superfície: Mais pontos de contato entre reagentes.<br>";
+            } else if (gameConfig.superficie === 1) {
+                detailedExplanation += "❌ Pequena superfície: Poucos pontos de contato entre reagentes.<br>";
+            }
+
+            explanationDiv.innerHTML = detailedExplanation;
+            resultsDiv.style.display = 'block';
+        }
+
+        function resetGame() {
+            document.getElementById('game-setup').style.display = 'block';
+            document.getElementById('race-track').style.display = 'none';
+            document.getElementById('analysis-section').style.display = 'none';
+            document.getElementById('race-results').style.display = 'none';
+
+            // Reset car positions
+            const cars = ['car1', 'car2', 'car3'];
+            cars.forEach(carId => {
+                const car = document.getElementById(carId);
+                car.style.animation = 'none';
+                car.style.transform = 'translateX(0)';
+            });
+        }
+
+        function showAnalysis() {
+            document.getElementById('analysis-section').style.display = 'block';
+            
+            // Create speed chart
+            createSpeedChart();
+            
+            // Create factor comparison chart
+            createFactorChart();
+        }
+
+        function createSpeedChart() {
+            const ctx = document.getElementById('speedChart').getContext('2d');
+            
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['0s', '2s', '4s', '6s', '8s', '10s'],
+                    datasets: [{
+                        label: 'Sua Configuração',
+                        data: [0, 20, 40, 60, 80, 100],
+                        borderColor: '#EF4444',
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        tension: 0.4
+                    }, {
+                        label: 'Configuração Média',
+                        data: [0, 15, 30, 45, 60, 80],
+                        borderColor: '#3B82F6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        tension: 0.4
+                    }, {
+                        label: 'Configuração Ótima',
+                        data: [0, 25, 50, 75, 90, 100],
+                        borderColor: '#10B981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            title: {
+                                display: true,
+                                text: 'Progresso da Reação (%)'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Tempo (segundos)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Velocidade das Reações ao Longo do Tempo'
+                        }
+                    }
+                }
+            });
+        }
+
+        function createFactorChart() {
+            const ctx = document.getElementById('factorChart').getContext('2d');
+            
+            new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['Temperatura', 'Concentração', 'Catalisador', 'Superfície'],
+                    datasets: [{
+                        label: 'Sua Configuração',
+                        data: [
+                            gameConfig.temperatura,
+                            gameConfig.concentracao,
+                            gameConfig.catalisador ? 3 : 1,
+                            gameConfig.superficie
+                        ],
+                        borderColor: '#EF4444',
+                        backgroundColor: 'rgba(239, 68, 68, 0.2)',
+                        pointBackgroundColor: '#EF4444'
+                    }, {
+                        label: 'Configuração Ótima',
+                        data: [3, 3, 3, 3],
+                        borderColor: '#10B981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                        pointBackgroundColor: '#10B981'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        r: {
+                            beginAtZero: true,
+                            max: 3,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Comparação de Fatores'
+                        }
+                    }
+                }
+            });
+        }
+
+        function initializeExercises() {
+            document.getElementById('check-answers').addEventListener('click', function() {
+                checkAllAnswers();
+            });
+        }
+
+        function checkAllAnswers() {
+            const questions = [
+                { name: 'q1', correct: 'b', element: 'answer1' },
+                { name: 'q2', correct: 'b', element: 'answer2' },
+                { name: 'q3', correct: 'b', element: 'answer3' }
+            ];
+
+            questions.forEach(q => {
+                const selected = document.querySelector(`input[name="${q.name}"]:checked`);
+                const answerDiv = document.getElementById(q.element);
+                
+                if (selected && selected.value === q.correct) {
+                    answerDiv.style.display = 'block';
+                    answerDiv.className = answerDiv.className.replace('bg-red-100 dark:bg-red-900', 'bg-green-100 dark:bg-green-900');
+                } else {
+                    answerDiv.style.display = 'block';
+                    answerDiv.className = answerDiv.className.replace('bg-green-100 dark:bg-green-900', 'bg-red-100 dark:bg-red-900');
+                    const correctText = answerDiv.querySelector('p');
+                    if (correctText) {
+                        correctText.innerHTML = correctText.innerHTML.replace('✅ Correto!', '❌ Incorreto!');
+                        correctText.className = correctText.className.replace('text-green-800 dark:text-green-200', 'text-red-800 dark:text-red-200');
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
